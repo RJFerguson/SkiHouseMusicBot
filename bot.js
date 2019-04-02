@@ -31,60 +31,24 @@ class WelcomeBot {
     async onTurn(turnContext) {
         if (turnContext.activity.type === ActivityTypes.Message) {
             const didBotWelcomedUser = await this.welcomedUserProperty.get(turnContext, false);
-            await turnContext.sendActivity(`How would you like to explore the event?`);
-            const text = turnContext.activity.text;
-
-            // Create an array with the valid color options.
-            const validColors = ['Red', 'Blue', 'Yellow'];
-
-            // If the `text` is in the Array, a valid color was selected and send agreement.
-            if (validColors.includes(text)) {
-                await turnContext.sendActivity(`I agree, ${ text } is the best color.`);
-            } else {
-                await turnContext.sendActivity('Please select a color.');
-            }
-
-            // After the bot has responded send the suggested actions.
-            await this.sendSuggestedActions(turnContext);
 
             if (didBotWelcomedUser === false) {
+                await this.sendSuggestedActions(turnContext);
                 await this.welcomedUserProperty.set(turnContext, true);
             } else {
-                let text = turnContext.activity.text.toLowerCase();
-                switch (text) {
-                case 'hello':
-                case 'hi':
-                    await turnContext.sendActivity(`You said "${ turnContext.activity.text }"`);
-                    break;
-                case 'intro':
-                    if (turnContext.activity.type === ActivityTypes.Message) {
-                    } else if (turnContext.activity.type === ActivityTypes.ConversationUpdate) {
-                        await this.sendWelcomeMessage(turnContext);
-                    } else {
-                        await turnContext.sendActivity(`[${ turnContext.activity.type } event detected.]`);
-                    }
-                    break;
-                case 'help':
-                    await turnContext.sendActivity({
-                        text: 'Intro Adaptive Card',
-                        attachments: [CardFactory.adaptiveCard(IntroCard)]
-                    });
-                    break;
-                default:
-                    await turnContext.sendActivity(`This is a simple Welcome Bot sample. You can say 'intro' to
-                                                        see the introduction card. If you are running this bot in the Bot
-                                                        Framework Emulator, press the 'Start Over' button to simulate user joining a bot or a channel`);
+                let text = turnContext.activity.text;
+                const validOptions = ['FAQS', 'Band Search', 'Navigate'];
+                if (validOptions.includes(text)) {
+                    await turnContext.sendActivity(`You clicked ${ text }! `);
+                    await this.sendSuggestedActions(turnContext);
+                } else {
+                    await turnContext.sendActivity('U R WRONG');
+                    await this.sendSuggestedActions(turnContext);
                 }
             }
-            // Save state changes
-            await this.userState.saveChanges(turnContext);
-        } else if (turnContext.activity.type === ActivityTypes.ConversationUpdate) {
-            // Send greeting when users are added to the conversation.
-            await this.sendWelcomeMessage(turnContext);
-        } else {
-            // Generic message for all other activities
-            await turnContext.sendActivity(`[${ turnContext.activity.type } event detected]`);
         }
+        // Save state changes
+        await this.userState.saveChanges(turnContext);
     }
 
     /**
@@ -120,7 +84,7 @@ class WelcomeBot {
  * @param {TurnContext} turnContext A TurnContext instance containing all the data needed for processing this conversation turn.
  */
     async sendSuggestedActions(turnContext) {
-        var reply = MessageFactory.suggestedActions(['Red', 'Yellow', 'Blue'], 'What is the best color?');
+        var reply = MessageFactory.suggestedActions(['FAQs', 'Band Search', 'Navigate'], 'How would you like to explore the event?');
         await turnContext.sendActivity(reply);
     }
 }
