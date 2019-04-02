@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 // Import required Bot Framework classes.
-const { ActivityTypes } = require('botbuilder');
+const { ActivityTypes, MessageFactory, TurnContext } = require('botbuilder');
 const { CardFactory } = require('botbuilder');
 
 // Adaptive Card content
@@ -32,9 +32,22 @@ class WelcomeBot {
         if (turnContext.activity.type === ActivityTypes.Message) {
             const didBotWelcomedUser = await this.welcomedUserProperty.get(turnContext, false);
             await turnContext.sendActivity(`How would you like to explore the event?`);
+            const text = turnContext.activity.text;
+
+            // Create an array with the valid color options.
+            const validColors = ['Red', 'Blue', 'Yellow'];
+
+            // If the `text` is in the Array, a valid color was selected and send agreement.
+            if (validColors.includes(text)) {
+                await turnContext.sendActivity(`I agree, ${ text } is the best color.`);
+            } else {
+                await turnContext.sendActivity('Please select a color.');
+            }
+
+            // After the bot has responded send the suggested actions.
+            await this.sendSuggestedActions(turnContext);
 
             if (didBotWelcomedUser === false) {
-            
                 await this.welcomedUserProperty.set(turnContext, true);
             } else {
                 let text = turnContext.activity.text.toLowerCase();
@@ -44,6 +57,13 @@ class WelcomeBot {
                     await turnContext.sendActivity(`You said "${ turnContext.activity.text }"`);
                     break;
                 case 'intro':
+                    if (turnContext.activity.type === ActivityTypes.Message) {
+                    } else if (turnContext.activity.type === ActivityTypes.ConversationUpdate) {
+                        await this.sendWelcomeMessage(turnContext);
+                    } else {
+                        await turnContext.sendActivity(`[${ turnContext.activity.type } event detected.]`);
+                    }
+                    break;
                 case 'help':
                     await turnContext.sendActivity({
                         text: 'Intro Adaptive Card',
@@ -93,6 +113,15 @@ class WelcomeBot {
                 }
             }
         }
+    }
+
+    /**
+ * Send suggested actions to the user.
+ * @param {TurnContext} turnContext A TurnContext instance containing all the data needed for processing this conversation turn.
+ */
+    async sendSuggestedActions(turnContext) {
+        var reply = MessageFactory.suggestedActions(['Red', 'Yellow', 'Blue'], 'What is the best color?');
+        await turnContext.sendActivity(reply);
     }
 }
 
