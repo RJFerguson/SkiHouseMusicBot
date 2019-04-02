@@ -4,7 +4,10 @@
 const dotenv = require('dotenv');
 const path = require('path');
 const restify = require('restify');
-
+const {
+    Greeter,
+    GreeterMiddleware
+} = require('./member-added-greeter');
 // Import required bot services.
 // See https://aka.ms/bot-services to learn more about the different parts of a bot.
 const { BotFrameworkAdapter } = require('botbuilder');
@@ -60,6 +63,8 @@ const adapter = new BotFrameworkAdapter({
     appId: endpointConfig.appId || process.env.microsoftAppID,
     appPassword: endpointConfig.appPassword || process.env.microsoftAppPassword
 });
+
+adapter.use(new GreeterMiddleware(new Greeter("Hi!")));
 
 // Catch-all for errors.
 adapter.onTurnError = async (context, error) => {
