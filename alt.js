@@ -18,22 +18,23 @@ const IsIt = require('./is-it');
 const Dialogs = Object.freeze({
     Root: 'root',
     EventExplorationOptions: 'eventExplorationOptions',
-    Respond: 'respond'
+    ShowChoice: 'respond'
 });
 
 class WelcomeBot {
     constructor(botState) {
+        this.botState = botState;
         this.stateAccessor = botState.createProperty('data');
 
         this.dialogs = new DialogSet(this.stateAccessor);
 
         this.dialogs.add(new WaterfallDialog(Dialogs.Root, [
             this.chooseExplorationOption.bind(this),
-            this.respond.bind(this)
+            this.showChoice.bind(this)
         ]));
 
         this.dialogs.add(new ChoicePrompt(Dialogs.EventExplorationOptions));
-        this.dialogs.add(new TextPrompt(Dialogs.Respond));
+        this.dialogs.add(new TextPrompt(Dialogs.ShowChoice));
     }
 
     /**
@@ -42,28 +43,48 @@ class WelcomeBot {
      */
     async chooseExplorationOption(step) {
         const choices = ['larry', 'moe', 'curly'];
-        const result = await step.prompt(Dialogs.EventExplorationOptions, `How would you like to explore the event?`, choices);
+        return await step.prompt(Dialogs.EventExplorationOptions, `How would you like to explore the event?`, choices);
     }
     /**
      *
      * @param {WaterfallStepContext} step
      */
-    async respond(step) {
-        const state = step.value;
-        await step.context.sendActivity(`K. got **${ state }**`);
+    async showChoice(step) {
+        const choice = step.result.value;
+        return await step.context.sendActivity(`K. got **${ choice }**`);
     }
 
     async onTurn(turnContext) {
-        if (turnContext.activity.type === ActivityTypes.Message) {
-            // Save state changes
-            await this.messageActivityHandler(turnContext);
-        } else if (turnContext.activity.type === ActivityTypes.ConversationUpdate) {
-            // Send greeting when users are added to the conversation.
-            await turnContext.sendActivity('Convo update...');
+        const dc = await this.dialogs.createContext(turnContext);
+        if (IsIt.activity(turnContext).isMessage) {
+            const utterance = (turnContext.activity.text || '').trim().toLowerCase();
+            if (utterance === 'cancel') {
+                if (dc.activeDialog) {
+                    await dc.cancelAllDialogs();
+                    await dc.context.sendActivity(`Ok... canceled.`);
+                } else {
+                    await dc.context.sendActivity(`Nothing to cancel.`);
+                }
+            }
+
+            await dc.continueDialog();
+
+            if (!turnContext.responded) {
+                await dc.beginDialog(Dialogs.Root);
+            }
+        } else if (IsIt.activity(turnContext).isConversationUpdate) {
+            if (this.memberJoined(turnContext.activity)) {
+                await turnContext.sendActivity(`Hi there! I'm Botski, the ASH Music Festival Bot. I'm here to guide you around the festival :-)`);
+                await dc.beginDialog(Dialogs.Root);
+            }
         } else {
-            // Generic message for all other activities
             await turnContext.sendActivity(`[${ turnContext.activity.type } event detected]`);
         }
+
+        await this.botState.saveChanges(turnContext);
+    }
+    memberJoined(activity) {
+        return ((activity.membersAdded.length !== 0 && (activity.membersAdded[0].id !== activity.recipient.id)));
     }
 
     async messageActivityHandler(ctx) {
@@ -86,7 +107,7 @@ class WelcomeBot {
                 console.log(`I can haz dialog result`);
                 if (this.shouldRepeat(dialogResult)) {
                     console.log(`should repeat!`);
-                    let target = dc.findDialog(Dialogs.Respond);
+                    let target = dc.findDialog(Dialogs.ShowChoice);
                     await target.repromptDialog(dc.context);
                 }
 
