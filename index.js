@@ -52,7 +52,7 @@ const adapter = new BotFrameworkAdapter({
     appPassword: endpointConfig.appPassword || process.env.microsoftAppPassword
 });
 
-adapter.use(new GreeterMiddleware(new Greeter("Hi!")));
+adapter.use(new GreeterMiddleware(new Greeter(`Hi there! I'm Botski, the ASH Music Festival Bot. I'm here to guide you around the festival :-)`)));
 
 // Catch-all for errors.
 adapter.onTurnError = async (context, error) => {
