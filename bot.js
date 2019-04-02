@@ -36,6 +36,12 @@ class WelcomeBot {
             const didBotWelcomedUser = await this.welcomedUserProperty.get(turnContext, false);
 
             if (didBotWelcomedUser === false) {
+                let text = turnContext.activity.text;
+                if (this.isValidChoice(text)) {
+                    await turnContext.sendActivity(`You clicked ${ text }! `);
+                } else {
+                    await turnContext.sendActivity(`Sorry. You said [${ text }] but I don't understand what you want.`);
+                }
                 await this.sendSuggestedActions(turnContext);
                 await this.welcomedUserProperty.set(turnContext, true);
             } else {
