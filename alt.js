@@ -51,7 +51,8 @@ class WelcomeBot {
      */
     async showChoice(step) {
         const choice = step.result.value;
-        return await step.context.sendActivity(`K. got **${ choice }**`);
+        await step.context.sendActivity(`You clicked **${ choice }**! `);
+        await step.replaceDialog(Dialogs.Root);
     }
 
     async onTurn(turnContext) {
