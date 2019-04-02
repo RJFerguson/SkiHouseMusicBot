@@ -43,12 +43,15 @@ class WelcomeBot {
                 if (this.isValidChoice(text)) {
                     await turnContext.sendActivity(`You clicked ${ text }! `);
                 } else {
-                    await turnContext.sendActivity(`Sorry. You said ${ text } but I don't understand what you want.`);
+                    await turnContext.sendActivity(`Sorry. You said [${ text }] but I don't understand what you want.`);
                 }
                 await this.sendSuggestedActions(turnContext);
             }
-        } else {
-            console.log(turnContext.activity.type);
+        } else if (turnContext.activity.type === ActivityTypes.ConversationUpdate) {
+            if (this.memberJoined(turnContext.activity)) {
+                await turnContext.sendActivity(`Hi there! I'm Botski, the ASH Music Festival Bot. I'm here to guide you around the festival :-)`);
+                await this.sendSuggestedActions(turnContext);
+            }
         }
         // Save state changes
         await this.userState.saveChanges(turnContext);
@@ -65,6 +68,10 @@ class WelcomeBot {
     async sendSuggestedActions(turnContext) {
         var reply = MessageFactory.suggestedActions(ValidExplorationOptions, 'How would you like to explore the event?');
         await turnContext.sendActivity(reply);
+    }
+
+    memberJoined(activity) {
+        return ((activity.membersAdded.length !== 0 && (activity.membersAdded[0].id !== activity.recipient.id)));
     }
 }
 
