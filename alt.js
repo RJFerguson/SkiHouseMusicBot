@@ -42,7 +42,7 @@ class WelcomeBot {
      * @param {WaterfallStepContext} step
      */
     async chooseExplorationOption(step) {
-        const choices = ['larry', 'moe', 'curly'];
+        const choices = ['FAQS', 'Band Search', 'Navigate'];
         return await step.prompt(Dialogs.EventExplorationOptions, `How would you like to explore the event?`, choices);
     }
     /**
