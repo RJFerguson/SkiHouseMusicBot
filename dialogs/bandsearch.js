@@ -1,4 +1,3 @@
-const { SearchService } = require('azure-search-client');
 
 const {
   ComponentDialog,
@@ -9,7 +8,7 @@ const {
 const {
   createHeroCard
 } = require('../cardFactory/cardFactory');
-
+const { getSearchResults } = require('../searchServices/searchServices');
 /**
  * A simple bot that responds to utterances with answers from QnA Maker.
  * If an answer is not found for an utterance, the bot responds with help.
@@ -34,13 +33,9 @@ class BandSearchDialogue extends ComponentDialog {
       },
       async function (step) {
         const choice = step.result;
-        const client = new SearchService('alpine-ski-house', '4B30F37835DFF403D277640BD0304073', '2017-11-11');
-        const resp = await client.indexes.use('azureblob-index').search({
-          search: choice
-        });
-        console.log(resp.result.value);
+        const bandResults = await getSearchResults(choice);
         if (bandResults[0]) {
-          return await step.context.sendActivity({ attachments: [createHeroCard(resp.result.value)] });
+          return await step.context.sendActivity({ attachments: [createHeroCard(bandResults[0])] });
         } else {
           return await step.context.sendActivity('No bands found');
         }
