@@ -6,10 +6,12 @@ const {
     ChoicePrompt,
     WaterfallDialog
 } = require('botbuilder-dialogs');
-const
-    { WelcomeBotDialogue } = require('./dialogs/welcome');
-const
-    { QnAMakerDialogue } = require('./dialogs/qna');
+const {
+    WelcomeBotDialogue
+} = require('./dialogs/welcome');
+const {
+    QnAMakerDialogue
+} = require('./dialogs/qna');
 
 const MENU_PROMPT = 'menuPrompt';
 const MAIN_DIALOG = 'mainDialog';
@@ -33,7 +35,7 @@ class Bot {
         this.dialogs.add(new WaterfallDialog(MAIN_DIALOG, [
             this.promptForMenu,
             this.handleMenuResult,
-            this.resetDialog,
+            this.resetDialog
         ]));
     }
 
@@ -72,7 +74,7 @@ class Bot {
      * @param step Waterfall dialog step
      */
     async promptForMenu(step) {
-        return step.beginDialog(WELCOMEDIALOG);;
+        return step.beginDialog(WELCOMEDIALOG);
     }
 
     /**
@@ -81,13 +83,13 @@ class Bot {
      * @param step Waterfall Dialog Step 
      */
     async handleMenuResult(step) {
-        switch (step.result.value) {
-            case "FAQS":
-                return step.beginDialog(QNADIALOG);
-            default :
-                await step.sendActivity("not implemented");
-        }
-        return step.next();
+        return step.beginDialog(QNADIALOG);
+        // switch (step.result.value) {
+        //     case "FAQS":
+        //         return step.beginDialog(QNADIALOG);
+        //     default :
+        //         await step.sendActivity("not implemented");
+        // }
     }
 
     /**
