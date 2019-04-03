@@ -6,6 +6,12 @@ const {
     ChoicePrompt,
     WaterfallDialog
 } = require('botbuilder-dialogs');
+
+const {
+    QnAMaker,
+    QnAMakerEndpoint,
+    QnAMakerOptions
+} = require('botbuilder-ai');
 const
     { WelcomeBotDialogue } = require('./dialogs/welcome');
 const
@@ -19,6 +25,7 @@ const DIALOG_STATE_PROPERTY = 'dialogState';
 
 class Bot {
     constructor(conversationState, endpoint) {
+        const qnaMaker = new QnAMaker(endpoint, {});
         this.conversationState = conversationState;
 
         // Configure dialogs
@@ -27,7 +34,7 @@ class Bot {
         this.dialogs.add(new ChoicePrompt(MENU_PROMPT));
 
         this.dialogs.add(new WelcomeBotDialogue(WELCOMEDIALOG));
-        this.dialogs.add(new QnAMakerDialogue(QNADIALOG, endpoint));
+        this.dialogs.add(new QnAMakerDialogue(QNADIALOG, endpoint, qnaMaker));
 
         // Adds a waterfall dialog that prompts users for the top level menu to the dialog set
         this.dialogs.add(new WaterfallDialog(MAIN_DIALOG, [
@@ -72,7 +79,7 @@ class Bot {
      * @param step Waterfall dialog step
      */
     async promptForMenu(step) {
-        return step.beginDialog(WELCOMEDIALOG);;
+        return step.beginDialog(WELCOMEDIALOG);
     }
 
     /**
@@ -81,14 +88,8 @@ class Bot {
      * @param step Waterfall Dialog Step 
      */
     async handleMenuResult(step) {
-        switch (step.result.value) {
-            case "FAQS":
-                return step.beginDialog(QNADIALOG);
-            default :
-                await step.sendActivity("not implemented");
-        }
-        return step.next();
-    }
+        return step.beginDialog(QNADIALOG);
+    };
 
     /**
      * This final step in our waterfall dialog replaces the dialog with itself, effectively starting the conversation over. This is often referred to as a 'message loop'.
