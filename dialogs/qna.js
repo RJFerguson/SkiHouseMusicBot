@@ -1,15 +1,9 @@
 const {
-    TurnContext
-} = require('botbuilder');
-const {
-    QnAMaker,
-    QnAMakerEndpoint,
-    QnAMakerOptions
+    QnAMaker
 } = require('botbuilder-ai');
 
 const {
     ComponentDialog,
-    DialogSet,
     TextPrompt,
     WaterfallDialog
 } = require('botbuilder-dialogs');
@@ -41,20 +35,14 @@ class QnAMakerDialogue extends ComponentDialog {
             async function(step) {
                 console.log('lets do this!');
                 let qnaResults;
-                try {
-                    qnaResults = await that.qnaMaker.getAnswers(step.context);
-                } catch (error) {
-                    console.log(error);
-                }
+                qnaResults = await that.qnaMaker.getAnswers(step.context);
 
-                // If an answer was received from QnA Maker, send the answer back to the user.
                 if (qnaResults[0]) {
-                    await step.context.sendActivity(qnaResults[0].answer);
-
-                    // If no answers were returned from QnA Maker, reply with help.
+                    return await step.context.sendActivity(`I have an answer! **${ qnaResults[0].answer }**`);
                 } else {
-                    await step.context.sendActivity('No QnA Maker answers were found. This example uses a QnA Maker Knowledge Base that focuses on smart light bulbs. To see QnA Maker in action, ask the bot questions like "Why won\'t it turn on?" or "I need help."');
+                    return await step.context.sendActivity('No QnA Maker answers were found. This example uses a QnA Maker Knowledge Base that focuses on smart light bulbs. To see QnA Maker in action, ask the bot questions like "Why won\'t it turn on?" or "I need help."');
                 }
+
             }
         ]));
     }

@@ -13,7 +13,6 @@ const {
     QnAMakerDialogue
 } = require('./dialogs/qna');
 
-const MENU_PROMPT = 'menuPrompt';
 const MAIN_DIALOG = 'mainDialog';
 const WELCOMEDIALOG = 'welcomeDialog';
 const QNADIALOG = 'QNADialog';
@@ -26,27 +25,19 @@ class Bot {
         // Configure dialogs
         this.dialogState = this.conversationState.createProperty(DIALOG_STATE_PROPERTY);
         this.dialogs = new DialogSet(this.dialogState);
-        this.dialogs.add(new ChoicePrompt(MENU_PROMPT));
+        // this.dialogs.add(new ChoicePrompt(MENU_PROMPT));
 
         this.dialogs.add(new WelcomeBotDialogue(WELCOMEDIALOG));
         this.dialogs.add(new QnAMakerDialogue(QNADIALOG, endpoint));
 
         // Adds a waterfall dialog that prompts users for the top level menu to the dialog set
         this.dialogs.add(new WaterfallDialog(MAIN_DIALOG, [
-            this.promptForMenu,
-            this.handleMenuResult,
-            this.resetDialog
+            this.promptForMenu.bind(this),
+            this.handleMenuResult.bind(this),
+            this.resetDialog.bind(this)
         ]));
     }
 
-    /**
-     * This function gets called on every conversation 'turn' (whenever your bot receives an activity). If the bot receives a 
-     * Message, it determines where in our dialog we are and continues the dialog accordingly. If the bot receives a 
-     * ConversationUpdate (received when the user and bot join the conversation) it sends a welcome message and starts the 
-     * menu dialog. 
-     * @param turnContext The context of a specific turn. Includes the incoming activity as well as several helpers for sending
-     * messages and handling conversations. 
-     */
     async onTurn(turnContext) {
         const dialogContext = await this.dialogs.createContext(turnContext);
 
@@ -83,13 +74,14 @@ class Bot {
      * @param step Waterfall Dialog Step 
      */
     async handleMenuResult(step) {
-        return step.beginDialog(QNADIALOG);
+        await step.beginDialog(QNADIALOG);
         // switch (step.result.value) {
         //     case "FAQS":
         //         return step.beginDialog(QNADIALOG);
         //     default :
         //         await step.sendActivity("not implemented");
         // }
+        // return step.next();
     }
 
     /**
