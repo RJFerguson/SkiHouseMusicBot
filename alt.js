@@ -22,7 +22,8 @@ const Dialogs = Object.freeze({
 });
 
 class WelcomeBot {
-    constructor(botState) {
+    constructor(botState, qnaEndpointSettings) {
+        this.qnaEndpointSettings = qnaEndpointSettings;
         this.botState = botState;
         this.stateAccessor = botState.createProperty('data');
 

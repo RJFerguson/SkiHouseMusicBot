@@ -8,6 +8,15 @@
             "appId": "",
             "appPassword": "",
             "id": "1"
+        },
+        {
+            "type": "qna",
+            "name": "AlpineSkiHouseQnA",
+            "kbId": "1e47ca0d-7fa9-44a8-95a0-fd0441a4c968",
+            "subscriptionKey": "",
+            "endpointKey": "c73c40ee-2ce9-4353-978c-8235c598aff8",
+            "hostname": "https://alpineskihouseqna.azurewebsites.net/qnamaker",
+            "id": "34"
         }
     ],
     "padlock": "",
