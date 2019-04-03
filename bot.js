@@ -14,11 +14,16 @@ const {
 const {
   BandSearchDialogue
 } = require('./dialogs/bandsearch');
+const {
+  NavigateDialogue
+} = require('./dialogs/navigate');
+
 const MAIN_DIALOG = 'mainDialog';
 const WELCOMEDIALOG = 'welcomeDialog';
 const QNADIALOG = 'QNADialog';
 const DIALOG_STATE_PROPERTY = 'dialogState';
-const BANDDIALOG= 'BandDialog';
+const BANDDIALOG = 'BandDialog';
+const NAVIGATEDIALOG = 'NavigateDialog';
 
 class Bot {
   constructor(conversationState, endpoint, searchConfig) {
@@ -31,7 +36,8 @@ class Bot {
 
     this.dialogs.add(new WelcomeBotDialogue(WELCOMEDIALOG));
     this.dialogs.add(new QnAMakerDialogue(QNADIALOG, endpoint));
-    this.dialogs.add(new BandSearchDialogue(BANDDIALOG,searchConfig));
+    this.dialogs.add(new BandSearchDialogue(BANDDIALOG, searchConfig));
+    this.dialogs.add(new NavigateDialogue(NAVIGATEDIALOG, {}));
 
     // Adds a waterfall dialog that prompts users for the top level menu to the dialog set
     this.dialogs.add(new WaterfallDialog(MAIN_DIALOG, [
@@ -52,7 +58,7 @@ class Bot {
       }
     } else if (turnContext.activity.type === ActivityTypes.ConversationUpdate) {
       if (this.memberJoined(turnContext.activity)) {
-        await turnContext.sendActivity(`Alpine Yo`);
+        await turnContext.sendActivity(`Hi there! I'm Botski, the ASH Music Festival Bot. I'm here to guide you around the festival :-)`);
         await dialogContext.beginDialog(MAIN_DIALOG);
       }
     }
@@ -82,6 +88,8 @@ class Bot {
         return step.beginDialog(QNADIALOG);
       case 'Band Search':
         return step.beginDialog(BANDDIALOG);
+      case 'Navigate':
+        return step.beginDialog(NAVIGATEDIALOG);
       default:
         await step.context.sendActivity('not implemented');
     }
