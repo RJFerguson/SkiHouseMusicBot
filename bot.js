@@ -11,14 +11,17 @@ const {
 const {
   QnAMakerDialogue
 } = require('./dialogs/qna');
-
+const {
+  BandSearchDialogue
+} = require('./dialogs/bandsearch');
 const MAIN_DIALOG = 'mainDialog';
 const WELCOMEDIALOG = 'welcomeDialog';
 const QNADIALOG = 'QNADialog';
 const DIALOG_STATE_PROPERTY = 'dialogState';
+const BANDDIALOG= 'BandDialog';
 
 class Bot {
-  constructor(conversationState, endpoint) {
+  constructor(conversationState, endpoint, searchConfig) {
     this.conversationState = conversationState;
 
     // Configure dialogs
@@ -28,6 +31,7 @@ class Bot {
 
     this.dialogs.add(new WelcomeBotDialogue(WELCOMEDIALOG));
     this.dialogs.add(new QnAMakerDialogue(QNADIALOG, endpoint));
+    this.dialogs.add(new BandSearchDialogue(BANDDIALOG,searchConfig));
 
     // Adds a waterfall dialog that prompts users for the top level menu to the dialog set
     this.dialogs.add(new WaterfallDialog(MAIN_DIALOG, [
@@ -76,6 +80,8 @@ class Bot {
     switch (step.result.selected) {
       case 'FAQS':
         return step.beginDialog(QNADIALOG);
+      case 'Band Search':
+        return step.beginDialog(BANDDIALOG);
       default:
         await step.context.sendActivity('not implemented');
     }
