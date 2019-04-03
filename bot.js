@@ -81,7 +81,6 @@ class Bot {
         //     default :
         //         await step.sendActivity("not implemented");
         // }
-        // return step.next();
     }
 
     /**
