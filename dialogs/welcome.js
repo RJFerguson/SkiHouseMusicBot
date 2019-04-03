@@ -37,6 +37,7 @@ class WelcomeBotDialogue extends ComponentDialog {
       },
       async function (step) {
         const choice = step.result.value;
+        console.log(choice)
         await step.context.sendActivity('You chose ' + choice);
         return step.next({
           selected: choice

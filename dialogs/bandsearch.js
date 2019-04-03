@@ -1,7 +1,4 @@
-
-const {
-  ActivityTypes
-} = require('botbuilder');
+const { SearchService } = require('azure-search-client');
 
 const {
   ComponentDialog,
@@ -36,33 +33,14 @@ class BandSearchDialogue extends ComponentDialog {
         });
       },
       async function (step) {
-        let bandResults = [{
-          'bandName': 'Feature Bug',
-          'genre': 'Electronic',
-          'image': 'Feature_Bug.jpg',
-          'description': "Feature Bug is known for incorporating glitchy electronic sounds with unexpected silences. Their number 1 song _itworks_ contains a one-minute silence in the middle of the track. Unsuspecting listeners may think their headphones are broken, but Feature Bug fans (aka Buggies) know that the silence is exactly what's working.",
-          'id': '48',
-          'stage': 'Prod',
-          'startTime': '5:00 PM',
-          'endTime': '6:30 PM',
-          'date': 'August 18',
-          'day': 'Sunday'
-        },
-        {
-          'bandName': 'The Shared Secrets',
-          'genre': 'Jazz',
-          'image': 'The_Shared_Secrets.jpg',
-          'description': "Their music might sound cryptic to the average listener, but if you're in the know The Shared Secrets unlock a world of meaning. ",
-          'id': '49',
-          'stage': 'Dev',
-          'startTime': '7:00 PM',
-          'endTime': '8:30 PM',
-          'date': 'August 18',
-          'day': 'Sunday'
-        }];
-
+        const choice = step.result;
+        const client = new SearchService('alpine-ski-house', '4B30F37835DFF403D277640BD0304073', '2017-11-11');
+        const resp = await client.indexes.use('azureblob-index').search({
+          search: choice
+        });
+        console.log(resp.result.value);
         if (bandResults[0]) {
-          return await step.context.sendActivity({ attachments: [createHeroCard()] });
+          return await step.context.sendActivity({ attachments: [createHeroCard(resp.result.value)] });
         } else {
           return await step.context.sendActivity('No bands found');
         }
