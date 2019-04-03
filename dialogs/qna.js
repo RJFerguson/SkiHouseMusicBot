@@ -46,11 +46,11 @@ class QnAMakerDialogue extends ComponentDialog {
 
                 // If an answer was received from QnA Maker, send the answer back to the user.
                 if (qnaResults[0]) {
-                    return step.context.sendActivity(qnaResults[0].answer);
+                    return await step.context.sendActivity(qnaResults[0].answer);
 
                     // If no answers were returned from QnA Maker, reply with help.
                 } else {
-                    await step.context.sendActivity('No QnA Maker answers were found. This example uses a QnA Maker Knowledge Base that focuses on smart light bulbs. To see QnA Maker in action, ask the bot questions like "Why won\'t it turn on?" or "I need help."');
+                    return await step.context.sendActivity('No QnA Maker answers were found. This example uses a QnA Maker Knowledge Base that focuses on smart light bulbs. To see QnA Maker in action, ask the bot questions like "Why won\'t it turn on?" or "I need help."');
                 }
             }
         ]));

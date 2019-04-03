@@ -40,7 +40,7 @@ class Bot {
         this.dialogs.add(new WaterfallDialog(MAIN_DIALOG, [
             this.promptForMenu,
             this.handleMenuResult,
-            this.resetDialog,
+            this.resetDialog
         ]));
     }
 
