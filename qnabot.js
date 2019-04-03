@@ -4,7 +4,7 @@ const { QnAMaker, QnAMakerEndpoint, QnAMakerOptions } = require('botbuilder-ai')
 /**
  * A simple bot that responds to utterances with answers from QnA Maker.
  * If an answer is not found for an utterance, the bot responds with help.
- */
+ */ 
 class QnAMakerBot {
     /**
      * The QnAMakerBot constructor requires one argument (`endpoint`) which is used to create an instance of `QnAMaker`.

@@ -1,84 +1,110 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
-
 const {
-    ActivityTypes,
-    MessageFactory,
-    TurnContext
+    ActivityTypes
 } = require('botbuilder');
 const {
-    CardFactory
-} = require('botbuilder');
+    DialogSet,
+    ChoicePrompt,
+    WaterfallDialog
+} = require('botbuilder-dialogs');
+const
+    { WelcomeBotDialogue } = require('./dialogs/welcome');
+const
+    { QnAMakerDialogue } = require('./dialogs/qna');
 
-const IntroCard = require('./resources/IntroCard.json');
+const MENU_PROMPT = 'menuPrompt';
+const MAIN_DIALOG = 'mainDialog';
+const WELCOMEDIALOG = 'welcomeDialog';
+const QNADIALOG = 'QNADialog';
+const DIALOG_STATE_PROPERTY = 'dialogState';
 
-const WELCOMED_USER = 'welcomedUserProperty';
+class Bot {
+    constructor(conversationState, endpoint) {
+        this.conversationState = conversationState;
 
-const ValidExplorationOptions = ['FAQS', 'Band Search', 'Navigate'];
+        // Configure dialogs
+        this.dialogState = this.conversationState.createProperty(DIALOG_STATE_PROPERTY);
+        this.dialogs = new DialogSet(this.dialogState);
+        this.dialogs.add(new ChoicePrompt(MENU_PROMPT));
 
-class WelcomeBot {
-    /**
-     *
-     * @param {UserState} User state to persist boolean flag to indicate
-     *                    if the bot had already welcomed the user
-     */
-    constructor(userState) {
-        this.welcomedUserProperty = userState.createProperty(WELCOMED_USER);
+        this.dialogs.add(new WelcomeBotDialogue(WELCOMEDIALOG));
+        this.dialogs.add(new QnAMakerDialogue(QNADIALOG, endpoint));
 
-        this.userState = userState;
+        // Adds a waterfall dialog that prompts users for the top level menu to the dialog set
+        this.dialogs.add(new WaterfallDialog(MAIN_DIALOG, [
+            this.promptForMenu,
+            this.handleMenuResult,
+            this.resetDialog,
+        ]));
     }
+
     /**
-     *
-     * @param {TurnContext} context on turn context object.
+     * This function gets called on every conversation 'turn' (whenever your bot receives an activity). If the bot receives a 
+     * Message, it determines where in our dialog we are and continues the dialog accordingly. If the bot receives a 
+     * ConversationUpdate (received when the user and bot join the conversation) it sends a welcome message and starts the 
+     * menu dialog. 
+     * @param turnContext The context of a specific turn. Includes the incoming activity as well as several helpers for sending
+     * messages and handling conversations. 
      */
     async onTurn(turnContext) {
-        if (turnContext.activity.type === ActivityTypes.Message) {
-            const didBotWelcomedUser = await this.welcomedUserProperty.get(turnContext, false);
+        const dialogContext = await this.dialogs.createContext(turnContext);
 
-            if (didBotWelcomedUser === false) {
-                let text = turnContext.activity.text;
-                if (this.isValidChoice(text)) {
-                    await turnContext.sendActivity(`You clicked ${ text }! `);
-                } else {
-                    await turnContext.sendActivity(`Sorry. You said [${ text }] but I don't understand what you want.`);
-                }
-                await this.sendSuggestedActions(turnContext);
-                await this.welcomedUserProperty.set(turnContext, true);
+        if (turnContext.activity.type === ActivityTypes.Message) {
+            if (dialogContext.activeDialog) {
+                await dialogContext.continueDialog();
             } else {
-                let text = turnContext.activity.text;
-                if (this.isValidChoice(text)) {
-                    await turnContext.sendActivity(`You clicked ${ text }! `);
-                } else {
-                    await turnContext.sendActivity(`Sorry. You said [${ text }] but I don't understand what you want.`);
-                }
-                await this.sendSuggestedActions(turnContext);
+                await dialogContext.beginDialog(MAIN_DIALOG);
             }
         } else if (turnContext.activity.type === ActivityTypes.ConversationUpdate) {
             if (this.memberJoined(turnContext.activity)) {
-                await turnContext.sendActivity(`Hi there! I'm Botski, the ASH Music Festival Bot. I'm here to guide you around the festival :-)`);
-                await this.sendSuggestedActions(turnContext);
+                await turnContext.sendActivity(`Alpine Yo`);
+                await dialogContext.beginDialog(MAIN_DIALOG);
             }
         }
-        // Save state changes
-        await this.userState.saveChanges(turnContext);
-    }
-
-    isValidChoice(text) {
-        return ValidExplorationOptions.includes(text);
+        await this.conversationState.saveChanges(turnContext);
     }
 
     /**
-     * Send suggested actions to the user.
-     * @param {TurnContext} turnContext A TurnContext instance containing all the data needed for processing this conversation turn.
+     * The first function in our waterfall dialog prompts the user with two options, 'Donate Food' and 'Food Bank'.
+     * It uses the ChoicePrompt added in the contructor and referenced by the MENU_PROMPT string. The array of 
+     * strings passed in as choices will be rendered as suggestedAction buttons which the user can then click. If the 
+     * user types anything other than the button text, the choice prompt will reject it and reprompt using the retryPrompt
+     * string. 
+     * @param step Waterfall dialog step
      */
-    async sendSuggestedActions(turnContext) {
-        var reply = MessageFactory.suggestedActions(ValidExplorationOptions, 'How would you like to explore the event?');
-        await turnContext.sendActivity(reply);
+    async promptForMenu(step) {
+        return step.beginDialog(WELCOMEDIALOG);;
     }
 
+    /**
+     * This step handles the result from the menu prompt above. It begins the appropriate dialog based on which button 
+     * was clicked. 
+     * @param step Waterfall Dialog Step 
+     */
+    async handleMenuResult(step) {
+        switch (step.result.value) {
+            case "FAQS":
+                return step.beginDialog(QNADIALOG);
+            default :
+                await step.sendActivity("not implemented");
+        }
+        return step.next();
+    }
+
+    /**
+     * This final step in our waterfall dialog replaces the dialog with itself, effectively starting the conversation over. This is often referred to as a 'message loop'.
+     * @param step Waterfall Dialog Step
+     */
+    async resetDialog(step) {
+        return step.replaceDialog(MAIN_DIALOG);
+    }
+
+    /**
+     * @param activity Incoming conversationUpdate activity
+     * @returns Returns true if a new user is added to the conversation, which is useful for determining when to welcome a user. 
+     */
     memberJoined(activity) {
         return ((activity.membersAdded.length !== 0 && (activity.membersAdded[0].id !== activity.recipient.id)));
     }
 }
 
-module.exports.WelcomeBot = WelcomeBot;
+module.exports.Bot = Bot;

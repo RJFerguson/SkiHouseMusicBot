@@ -1,14 +1,13 @@
 'use strict';
 
-const WelcomeDialogue = require('./dialogs/welcome');
-const QNABotDialogue = require('./dialogs/qna');
-
-const { 
+const {
     ActivityTypes
 } = require('botbuilder');
 
 const {
     ChoicePrompt,
+    ConfirmPrompt,
+    DateTimePrompt,
     DialogSet,
     TextPrompt,
     WaterfallDialog
@@ -23,8 +22,7 @@ const Dialogs = Object.freeze({
 });
 
 class WelcomeBot {
-    constructor(botState, qnaEndpointSettings) {
-        this.qnaEndpointSettings = qnaEndpointSettings;
+    constructor(botState) {
         this.botState = botState;
         this.stateAccessor = botState.createProperty('data');
 

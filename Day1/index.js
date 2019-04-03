@@ -9,7 +9,7 @@ const { BotFrameworkAdapter, UserState, MemoryStorage } = require('botbuilder');
 
 const { BotConfiguration } = require('botframework-config');
 
-const { Bot } = require('./bot');
+const { WelcomeBot } = require('./alt');
 
 // Read botFilePath and botFileSecret from .env file
 // Note: Ensure you have a .env file and include botFilePath and botFileSecret.
@@ -67,17 +67,6 @@ let userState;
 const memoryStorage = new MemoryStorage();
 userState = new UserState(memoryStorage);
 
-
-
-
-const qnaEndpointSettings = {
-    knowledgeBaseId: "1e47ca0d-7fa9-44a8-95a0-fd0441a4c968",
-    endpointKey: "c73c40ee-2ce9-4353-978c-8235c598aff8",
-    host: "https://alpineskihouseqna.azurewebsites.net/qnamaker"
-};
-
-
-
 // CAUTION: You must ensure your product environment has the NODE_ENV set
 //          to use the Azure Blob storage or Azure Cosmos DB providers.
 // const { BlobStorage } = require('botbuilder-azure');
@@ -94,8 +83,7 @@ const qnaEndpointSettings = {
 // userState = new userState(blobStorage);
 
 // Create the main dialog.
-const bot = new Bot(userState, qnaEndpointSettings);
-
+const bot = new WelcomeBot(userState);
 
 // Create HTTP server
 let server = restify.createServer();

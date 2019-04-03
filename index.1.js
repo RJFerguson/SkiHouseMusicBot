@@ -9,7 +9,7 @@ const { BotFrameworkAdapter, UserState, MemoryStorage } = require('botbuilder');
 
 const { BotConfiguration } = require('botframework-config');
 
-const { Bot } = require('./bot');
+const { WelcomeBot } = require('./qnabot');
 
 // Read botFilePath and botFileSecret from .env file
 // Note: Ensure you have a .env file and include botFilePath and botFileSecret.
@@ -94,7 +94,7 @@ const qnaEndpointSettings = {
 // userState = new userState(blobStorage);
 
 // Create the main dialog.
-const bot = new Bot(userState, qnaEndpointSettings);
+const bot = new WelcomeBot(userState, qnaEndpointSettings);
 
 
 // Create HTTP server
