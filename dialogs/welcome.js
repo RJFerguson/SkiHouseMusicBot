@@ -1,6 +1,6 @@
 'use strict';
 
-const { 
+const {
     ActivityTypes
 } = require('botbuilder');
 
@@ -14,9 +14,6 @@ const {
     WaterfallDialog
 } = require('botbuilder-dialogs');
 
-
-
-
 class WelcomeBotDialogue extends ComponentDialog {
     constructor(dialogId) {
         super(dialogId);
@@ -29,20 +26,21 @@ class WelcomeBotDialogue extends ComponentDialog {
 
         // Define the conversation flow using a waterfall model.
         this.addDialog(new WaterfallDialog(dialogId, [
-            async function (step) {
+            async function(step) {
                 const choices = ['FAQS', 'Band Search', 'Navigate'];
-               
 
                 return await step.prompt('choicePrompt', {
                     choices: choices,
-                    prompt: "How would you like to explore the event?",
-                    retryPrompt: "Sorry, please try again."
+                    prompt: 'How would you like to explore the event?',
+                    retryPrompt: 'Sorry, please try again.'
                 });
             },
-            async function (step) {
+            async function(step) {
                 const choice = step.result.value;
-                await step.context.sendActivity("You chose " + choice);
-                return choice;
+                await step.context.sendActivity('You chose ' + choice);
+                return step.next({
+                    selected: choice
+                });
             }
         ]));
     }

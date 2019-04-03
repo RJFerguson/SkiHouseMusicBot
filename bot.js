@@ -58,10 +58,10 @@ class Bot {
 
     /**
      * The first function in our waterfall dialog prompts the user with two options, 'Donate Food' and 'Food Bank'.
-     * It uses the ChoicePrompt added in the contructor and referenced by the MENU_PROMPT string. The array of 
-     * strings passed in as choices will be rendered as suggestedAction buttons which the user can then click. If the 
+     * It uses the ChoicePrompt added in the contructor and referenced by the MENU_PROMPT string. The array of
+     * strings passed in as choices will be rendered as suggestedAction buttons which the user can then click. If the
      * user types anything other than the button text, the choice prompt will reject it and reprompt using the retryPrompt
-     * string. 
+     * string.
      * @param step Waterfall dialog step
      */
     async promptForMenu(step) {
@@ -69,18 +69,17 @@ class Bot {
     }
 
     /**
-     * This step handles the result from the menu prompt above. It begins the appropriate dialog based on which button 
-     * was clicked. 
-     * @param step Waterfall Dialog Step 
+     * This step handles the result from the menu prompt above. It begins the appropriate dialog based on which button
+     * was clicked.
+     * @param step Waterfall Dialog Step
      */
     async handleMenuResult(step) {
-        await step.beginDialog(QNADIALOG);
-        // switch (step.result.value) {
-        //     case "FAQS":
-        //         return step.beginDialog(QNADIALOG);
-        //     default :
-        //         await step.sendActivity("not implemented");
-        // }
+        switch (step.result.selected) {
+        case 'FAQS':
+            return step.beginDialog(QNADIALOG);
+        default :
+            await step.context.sendActivity('not implemented');
+        }
     }
 
     /**
@@ -93,7 +92,7 @@ class Bot {
 
     /**
      * @param activity Incoming conversationUpdate activity
-     * @returns Returns true if a new user is added to the conversation, which is useful for determining when to welcome a user. 
+     * @returns Returns true if a new user is added to the conversation, which is useful for determining when to welcome a user.
      */
     memberJoined(activity) {
         return ((activity.membersAdded.length !== 0 && (activity.membersAdded[0].id !== activity.recipient.id)));
