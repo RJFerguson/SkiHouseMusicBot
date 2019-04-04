@@ -26,13 +26,17 @@ class BandSearchDialogue extends ComponentDialog {
 
     // Define the conversation flow using a waterfall model.
     this.addDialog(new WaterfallDialog(dialogId, [
-      async function (step) {
+      async function(step) {
+        if (step.options && step.options.query) {
+          step.values.query = step.options.query;
+          return await step.next();
+        }
         return await step.prompt('textPrompt', {
           prompt: 'What band would you like to search for?'
         });
       },
-      async function (step) {
-        const choice = step.result;
+      async function(step) {
+        const choice = step.result || step.values.query;
         const bandResults = await getSearchResults(choice);
         if (bandResults[0]) {
           return await step.context.sendActivity({ attachments: [createHeroCard(bandResults[0])] });

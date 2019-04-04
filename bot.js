@@ -17,6 +17,9 @@ const {
 const {
   NavigateDialogue
 } = require('./dialogs/navigate');
+const {
+  Lu
+} = require('./searchServices/lu');
 
 const MAIN_DIALOG = 'mainDialog';
 const WELCOMEDIALOG = 'welcomeDialog';
@@ -28,7 +31,7 @@ const NAVIGATEDIALOG = 'NavigateDialog';
 class Bot {
   constructor(conversationState, endpoint, searchConfig) {
     this.conversationState = conversationState;
-
+    this.lu = new Lu();
     // Configure dialogs
     this.stateAccessor = this.conversationState.createProperty(DIALOG_STATE_PROPERTY);
     this.dialogs = new DialogSet(this.stateAccessor);
@@ -51,7 +54,15 @@ class Bot {
     const dialogContext = await this.dialogs.createContext(turnContext);
 
     if (turnContext.activity.type === ActivityTypes.Message) {
-      if ((turnContext.activity.text.match(/^(\W+)?cancel(\W+)?$/))) {
+      const utterance = turnContext.activity.text;
+      const query = await (this.lu).getQuery(turnContext);
+      if (query) {
+        await turnContext.sendActivity(`${ query }`);
+        await dialogContext.beginDialog(BANDDIALOG, {
+          query: query
+        });
+      }
+      if ((utterance.match(/^(\W+)?cancel(\W+)?$/))) {
         await dialogContext.cancelAllDialogs();
         await dialogContext.beginDialog(MAIN_DIALOG);
       } else
