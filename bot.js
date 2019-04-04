@@ -51,6 +51,10 @@ class Bot {
     const dialogContext = await this.dialogs.createContext(turnContext);
 
     if (turnContext.activity.type === ActivityTypes.Message) {
+      if ((turnContext.activity.text.match(/^(\W+)?cancel(\W+)?$/))) {
+        await dialogContext.cancelAllDialogs();
+        await dialogContext.beginDialog(MAIN_DIALOG);
+      } else
       if (dialogContext.activeDialog) {
         await dialogContext.continueDialog();
       } else {
