@@ -3,7 +3,9 @@ const {
   ChoicePrompt,
   WaterfallDialog
 } = require('botbuilder-dialogs');
-const { AttachmentLayoutTypes } = require('botbuilder');
+const {
+  AttachmentLayoutTypes
+} = require('botbuilder');
 const {
   createHeroCard
 } = require('../cardFactory/cardFactory');
@@ -60,11 +62,12 @@ class NavigateDialogue extends ComponentDialog {
 
         const results = await getSearchResults(`genre eq "${ genre }" and day eq ${ day }`);
         const cards = results.map(createHeroCard);
-        return await step.context.sendActivity({
+        await step.context.sendActivity({
           attachments: cards,
           attachmentLayout: AttachmentLayoutTypes.Carousel
 
         });
+        return await step.context.sendActivity(`You could also just say **${ genre }** on **${ day }**`);
       }
 
     ]));

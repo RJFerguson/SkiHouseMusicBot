@@ -55,19 +55,24 @@ class Bot {
 
     if (turnContext.activity.type === ActivityTypes.Message) {
       const utterance = turnContext.activity.text;
-      const query = await (this.lu).getQuery(turnContext);
-      if (query) {
-        await turnContext.sendActivity(`${ query }`);
-        await dialogContext.beginDialog(BANDDIALOG, {
-          query: query
-        });
-      }
       if ((utterance.match(/^(\W+)?cancel(\W+)?$/))) {
         await dialogContext.cancelAllDialogs();
         await dialogContext.beginDialog(MAIN_DIALOG);
       } else
       if (dialogContext.activeDialog) {
-        await dialogContext.continueDialog();
+        console.log(dialogContext.activeDialog.id);
+        if (dialogContext.activeDialog.id === WELCOMEDIALOG) {
+          const query = await (this.lu).getQuery(turnContext);
+          if (query) {
+            await dialogContext.replaceDialog(BANDDIALOG, {
+              query: query
+            });
+          } else {
+            await dialogContext.continueDialog();
+          }
+        } else {
+          await dialogContext.continueDialog();
+        }
       } else {
         await dialogContext.beginDialog(MAIN_DIALOG);
       }
@@ -79,6 +84,8 @@ class Bot {
     }
     await this.conversationState.saveChanges(turnContext);
   }
+
+  async luisFreeSearch(turnContext, dialogContext) {}
 
   /**
    * The first function in our waterfall dialog prompts the user with two options, 'Donate Food' and 'Food Bank'.
@@ -98,13 +105,16 @@ class Bot {
    * @param step Waterfall Dialog Step
    */
   async handleMenuResult(step) {
-    switch (step.result.selected) {
+    const switchee = (step.result && step.result.selected) || 'FREEBIRD';
+    switch (switchee) {
       case 'FAQS':
         return step.beginDialog(QNADIALOG);
       case 'Band Search':
         return step.beginDialog(BANDDIALOG);
       case 'Navigate':
         return step.beginDialog(NAVIGATEDIALOG);
+      case 'FREEBIRD':
+        return step.replaceDialog(MAIN_DIALOG);
       default:
         await step.context.sendActivity('not implemented');
     }
