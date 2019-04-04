@@ -20,6 +20,9 @@ const {
 const {
   Lu
 } = require('./searchServices/lu');
+const {
+  OAuthDialogue
+} = require('./dialogs/oAuth');
 
 const MAIN_DIALOG = 'mainDialog';
 const WELCOMEDIALOG = 'welcomeDialog';
@@ -27,6 +30,7 @@ const QNADIALOG = 'QNADialog';
 const DIALOG_STATE_PROPERTY = 'dialogState';
 const BANDDIALOG = 'BandDialog';
 const NAVIGATEDIALOG = 'NavigateDialog';
+const OAUTH_DIALOG = 'oauthDialog';
 
 class Bot {
   constructor(conversationState, endpoint, searchConfig) {
@@ -41,6 +45,7 @@ class Bot {
     this.dialogs.add(new QnAMakerDialogue(QNADIALOG, endpoint));
     this.dialogs.add(new BandSearchDialogue(BANDDIALOG, searchConfig));
     this.dialogs.add(new NavigateDialogue(NAVIGATEDIALOG, this.stateAccessor, {}));
+    this.dialogs.add(new OAuthDialogue(OAUTH_DIALOG));
 
     // Adds a waterfall dialog that prompts users for the top level menu to the dialog set
     this.dialogs.add(new WaterfallDialog(MAIN_DIALOG, [
@@ -58,24 +63,28 @@ class Bot {
       if ((utterance.match(/^(\W+)?cancel(\W+)?$/))) {
         await dialogContext.cancelAllDialogs();
         await dialogContext.beginDialog(MAIN_DIALOG);
+      } else if ((utterance.match(/^(\W+)?login(\W+)?$/))) {
+        await turnContext.sendActivity(`LOGIN`);
+        await dialogContext.cancelAllDialogs();
+        await dialogContext.beginDialog(OAUTH_DIALOG);
       } else
-      if (dialogContext.activeDialog) {
-        console.log(dialogContext.activeDialog.id);
-        if (dialogContext.activeDialog.id === WELCOMEDIALOG) {
-          const query = await (this.lu).getQuery(turnContext);
-          if (query) {
-            await dialogContext.replaceDialog(BANDDIALOG, {
-              query: query
-            });
+        if (dialogContext.activeDialog) {
+          console.log(dialogContext.activeDialog.id);
+          if (dialogContext.activeDialog.id === WELCOMEDIALOG) {
+            const query = await (this.lu).getQuery(turnContext);
+            if (query) {
+              await dialogContext.replaceDialog(BANDDIALOG, {
+                query: query
+              });
+            } else {
+              await dialogContext.continueDialog();
+            }
           } else {
             await dialogContext.continueDialog();
           }
         } else {
-          await dialogContext.continueDialog();
+          await dialogContext.beginDialog(MAIN_DIALOG);
         }
-      } else {
-        await dialogContext.beginDialog(MAIN_DIALOG);
-      }
     } else if (turnContext.activity.type === ActivityTypes.ConversationUpdate) {
       if (this.memberJoined(turnContext.activity)) {
         await turnContext.sendActivity(`Hi there! I'm Botski, the ASH Music Festival Bot. I'm here to guide you around the festival :-)`);
@@ -85,7 +94,7 @@ class Bot {
     await this.conversationState.saveChanges(turnContext);
   }
 
-  async luisFreeSearch(turnContext, dialogContext) {}
+  async luisFreeSearch(turnContext, dialogContext) { }
 
   /**
    * The first function in our waterfall dialog prompts the user with two options, 'Donate Food' and 'Food Bank'.

@@ -17,6 +17,14 @@
             "endpointKey": "c73c40ee-2ce9-4353-978c-8235c598aff8",
             "hostname": "https://alpineskihouseqna.azurewebsites.net/qnamaker",
             "id": "34"
+        },
+        {
+        "appId": "ff88387f-183f-4a8a-a362-b0626856f210",
+        "id": "http://localhost:3978/api/messages",
+        "type": "endpoint",
+        "appPassword": "hV/cBunUPm0yHn9oOuOULr+ZAEYxuqmmc2x6rBfeFsk=",
+        "endpoint": "http://localhost:3978/api/messages",
+        "name": "BotAuthentication"
         }
     ],
     "padlock": "",
