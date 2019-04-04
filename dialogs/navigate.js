@@ -1,22 +1,24 @@
 const {
   ComponentDialog,
-  TextPrompt,
   ChoicePrompt,
   WaterfallDialog
 } = require('botbuilder-dialogs');
-
+const { AttachmentLayoutTypes } = require('botbuilder');
 const {
   createHeroCard
 } = require('../cardFactory/cardFactory');
-
+const {
+  getSearchResults
+} = require('../searchServices/searchServices');
 /**
  * A simple bot that responds to utterances with answers from QnA Maker.
  * If an answer is not found for an utterance, the bot responds with help.
  */
 
 class NavigateDialogue extends ComponentDialog {
-  constructor(dialogId, endpoint) {
+  constructor(dialogId, stateAccessor, endpoint) {
     super(dialogId);
+    this.stateAccessor = stateAccessor;
 
     // ID of the child dialog that should be started anytime the component is started.
     this.initialDialogId = dialogId;
@@ -39,8 +41,9 @@ class NavigateDialogue extends ComponentDialog {
 
       async function(step) {
         const day = step.result.value;
+        const state = await that.stateAccessor.get(step.context, {});
+        state.day = day;
 
-        await step.context.sendActivity(`Ok ${ day }`);
         const choices = ['Rock', 'Jazz', 'Electronic', 'Country', 'Hip-hop', 'Alternative', 'Blues'];
 
         return await step.prompt('genrePrompt', {
@@ -49,10 +52,19 @@ class NavigateDialogue extends ComponentDialog {
           retryPrompt: 'Not a valid genre.'
         });
       },
+
       async function(step) {
         const genre = step.result.value;
-        await step.context.sendActivity(`Ok ${ genre }`);
-        return await step.context.sendActivity(`results soon!`);
+        const state = await that.stateAccessor.get(step.context, {});
+        const day = state.day;
+
+        const results = await getSearchResults(`genre eq "${ genre }" and day eq ${ day }`);
+        const cards = results.map(createHeroCard);
+        return await step.context.sendActivity({
+          attachments: cards,
+          attachmentLayout: AttachmentLayoutTypes.Carousel
+
+        });
       }
 
     ]));

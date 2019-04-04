@@ -30,14 +30,14 @@ class Bot {
     this.conversationState = conversationState;
 
     // Configure dialogs
-    this.dialogState = this.conversationState.createProperty(DIALOG_STATE_PROPERTY);
-    this.dialogs = new DialogSet(this.dialogState);
+    this.stateAccessor = this.conversationState.createProperty(DIALOG_STATE_PROPERTY);
+    this.dialogs = new DialogSet(this.stateAccessor);
     // this.dialogs.add(new ChoicePrompt(MENU_PROMPT));
 
     this.dialogs.add(new WelcomeBotDialogue(WELCOMEDIALOG));
     this.dialogs.add(new QnAMakerDialogue(QNADIALOG, endpoint));
     this.dialogs.add(new BandSearchDialogue(BANDDIALOG, searchConfig));
-    this.dialogs.add(new NavigateDialogue(NAVIGATEDIALOG, {}));
+    this.dialogs.add(new NavigateDialogue(NAVIGATEDIALOG, this.stateAccessor, {}));
 
     // Adds a waterfall dialog that prompts users for the top level menu to the dialog set
     this.dialogs.add(new WaterfallDialog(MAIN_DIALOG, [
